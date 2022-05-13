@@ -74,25 +74,38 @@ pub mod pallet {
 	pub(super) type Proofs<T: Config> = StorageMap<
 		_,
 		Blake2_128Concat,
+		T::AccountId,
 		(
 			BoundedVec<u8, T::MaxBytesInHash>,
 			BoundedVec<u8, T::Artist>,
 			BoundedVec<u8, T::Title>,
 			BoundedVec<u8, T::Bpm>,
+			T::BlockNumber,
 		),
-		// T::Artist,
-		(T::AccountId, T::BlockNumber),
-		// (
-		// 	T::Album,
-		// 	T::Artwork,
-		// 	T::Duration,
-		// 	T::Genre,
-		// 	T::Key,
-		// 	T::TimeSignature,
-		// ),
 		OptionQuery,
 	>;
-
+	// 	// (
+	// 	// 	T::Album,
+	// 	// 	T::Artwork,
+	// 	// 	T::Duration,
+	// 	// 	T::Genre,
+	// 	// 	T::Key,
+	// 	// 	T::TimeSignature,
+	// ),
+	// pub(super) type Proofs<T: Config> = StorageDoubleMap<
+	// 	_,
+	// 	Blake2_128Concat,
+	// 	BoundedVec<u8, T::Artist>,
+	// 	Blake2_128Concat,
+	// 	(
+	// 		BoundedVec<u8, T::MaxBytesInHash>,
+	// 		BoundedVec<u8, T::Artist>,
+	// 		BoundedVec<u8, T::Title>,
+	// 		BoundedVec<u8, T::Bpm>,
+	// 	),
+	// 	(T::AccountId, T::BlockNumber),
+	// 	OptionQuery,
+	// >;
 	// Dispatchable functions allow users to interact with the pallet and invoke state changes.
 	// These functions materialize as "extrinsics", which are often compared to transactions.
 	// Dispatchable functions must be annotated with a weight and must return a DispatchResult.
@@ -125,8 +138,8 @@ pub mod pallet {
 
 			// Store the proof with the sender and block number.
 			Proofs::<T>::insert(
-				(&proof, &artist, &title, &bpm),
-				(&sender, current_block),
+				&sender,
+				(&proof, &artist, &title, &bpm, current_block),
 				// (artist, album, title, artwork, duration, bpm, genre, key, time_signature),
 			);
 
