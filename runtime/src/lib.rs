@@ -268,10 +268,17 @@ impl pallet_sudo::Config for Runtime {
 impl pallet_template::Config for Runtime {
 	type Event = Event;
 	type MaxBytesInHash = frame_support::traits::ConstU32<64>;
-	// type Artist = scale_info::prelude::string::String;;
 	type Artist = frame_support::traits::ConstU32<64>;
-	type Title = frame_support::traits::ConstU32<64>;
+	type MusicId = frame_support::traits::ConstU32<64>;
+	type TrackTitle = frame_support::traits::ConstU32<64>;
+	type Album = frame_support::traits::ConstU32<64>;
+	type Genre = frame_support::traits::ConstU32<64>;
 	type Bpm = frame_support::traits::ConstU32<64>;
+	type Key = frame_support::traits::ConstU32<64>;
+	type TimeSignature = frame_support::traits::ConstU32<64>;
+	type Bars = frame_support::traits::ConstU32<64>;
+	type Duration = frame_support::traits::ConstU32<64>;
+	type StartBeatOffsetMs = frame_support::traits::ConstU32<64>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.

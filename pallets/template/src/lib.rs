@@ -21,24 +21,28 @@ pub mod pallet {
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// For constraining the maximum bytes of a hash used for any proof
 		type MaxBytesInHash: Get<u32>;
-		// Artist name
+		/// Music Id
+		type MusicId: Get<u32>;
+		/// Artist name
 		type Artist: Get<u32>;
-		// // Album name
-		// type Album: Get<u32>;
-		// // Title
-		type Title: Get<u32>;
-		// // Artwork
-		// type Artwork: Get<String>;
-		// // Duration
-		// type Duration: Get<String>;
-		// Bpm
+		/// Title
+		type TrackTitle: Get<u32>;
+		/// Album name
+		type Album: Get<u32>;
+		/// Genre
+		type Genre: Get<u32>;
+		/// Bpm
 		type Bpm: Get<u32>;
-		// // Genre
-		// type Genre: Get<String>;
-		// // Key
-		// type Key: Get<String>;
-		// // TimeSignature
-		// type TimeSignature: Get<String>;
+		/// Key
+		type Key: Get<u32>;
+		/// Time Signature
+		type TimeSignature: Get<u32>;
+		/// Number of Bars
+		type Bars: Get<u32>;
+		/// Duration
+		type Duration: Get<u32>;
+		/// Start Beat Offset in ms
+		type StartBeatOffsetMs: Get<u32>;
 	}
 
 	// Pallets use events to inform users when important changes are made.
@@ -50,10 +54,7 @@ pub mod pallet {
 		/// Event emitted when a proof has been claimed. [who, claim]
 		ClaimCreated(
 			T::AccountId,
-			BoundedVec<u8, T::MaxBytesInHash>,
-			BoundedVec<u8, T::Artist>,
-			BoundedVec<u8, T::Title>,
-			BoundedVec<u8, T::Bpm>,
+			BoundedVec<u8, T::MusicId>,
 		),
 		/// Event emitted when a claim is revoked by the owner. [who, claim]
 		ClaimRevoked(T::AccountId, BoundedVec<u8, T::MaxBytesInHash>),
@@ -71,15 +72,23 @@ pub mod pallet {
 
 	#[pallet::storage] // <-- Step 5. code block will replace this.
 	/// Maps each proof to its owner and block number when the proof was made
-	pub(super) type Proofs<T: Config> = StorageMap<
+	pub(super) type FullTracks<T: Config> = StorageMap<
 		_,
 		Blake2_128Concat,
-		T::AccountId,
+		BoundedVec<u8, T::MusicId>,
 		(
+			T::AccountId,
 			BoundedVec<u8, T::MaxBytesInHash>,
 			BoundedVec<u8, T::Artist>,
-			BoundedVec<u8, T::Title>,
+			BoundedVec<u8, T::TrackTitle>,
+			BoundedVec<u8, T::Album>,
+			BoundedVec<u8, T::Genre>,
 			BoundedVec<u8, T::Bpm>,
+			BoundedVec<u8, T::Key>,
+			BoundedVec<u8, T::TimeSignature>,
+			BoundedVec<u8, T::Bars>,
+			BoundedVec<u8, T::Duration>,
+			BoundedVec<u8, T::StartBeatOffsetMs>,
 			T::BlockNumber,
 		),
 		OptionQuery,
@@ -112,18 +121,20 @@ pub mod pallet {
 	#[pallet::call] // <-- Step 6. code block will replace this.
 	impl<T: Config> Pallet<T> {
 		#[pallet::weight(1_000)]
-		pub fn create_claim(
+		pub fn create_fulltrack(
 			origin: OriginFor<T>,
-			proof: BoundedVec<u8, T::MaxBytesInHash>,
+			music_id: BoundedVec<u8, T::MusicId>,
+			music_file: BoundedVec<u8, T::MaxBytesInHash>,
 			artist: BoundedVec<u8, T::Artist>,
-			title: BoundedVec<u8, T::Title>,
+			track_title: BoundedVec<u8, T::TrackTitle>,
+			album: BoundedVec<u8, T::Album>,
+			genre: BoundedVec<u8, T::Genre>,
 			bpm: BoundedVec<u8, T::Bpm>,
-			// album,
-			// artwork,
-			// duration,
-			// genre,
-			// key,
-			// time_signature,
+			key: BoundedVec<u8, T::Key>,
+			time_signature: BoundedVec<u8, T::TimeSignature>,
+			bars: BoundedVec<u8, T::Bars>,
+			duration: BoundedVec<u8, T::Duration>,
+			start_beat_offset_ms: BoundedVec<u8, T::StartBeatOffsetMs>,
 		) -> DispatchResult {
 			// Check that the extrinsic was signed and get the signer.
 			// This function will return an error if the extrinsic is not signed.
@@ -137,14 +148,14 @@ pub mod pallet {
 			let current_block = <frame_system::Pallet<T>>::block_number();
 
 			// Store the proof with the sender and block number.
-			Proofs::<T>::insert(
-				&sender,
-				(&proof, &artist, &title, &bpm, current_block),
-				// (artist, album, title, artwork, duration, bpm, genre, key, time_signature),
+			FullTracks::<T>::insert(
+				&music_id,
+				(&sender, &music_file, &artist, &track_title, &album, &genre, &bpm, &key, &time_signature, &bars, &duration, &start_beat_offset_ms, current_block),
 			);
 
+
 			// Emit an event that the claim was created.
-			Self::deposit_event(Event::ClaimCreated(sender, proof, artist, title, bpm));
+			Self::deposit_event(Event::ClaimCreated(sender, music_id));
 
 			Ok(())
 		}
