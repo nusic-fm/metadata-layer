@@ -20,7 +20,7 @@ pub mod pallet {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
 		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
 		/// For constraining the maximum bytes of a hash used for any proof
-		type MaxBytesInHash: Get<u32>;
+		type FullTrackCid: Get<u32>;
 		/// Music Id
 		type MusicId: Get<u32>;
 		/// Artist name
@@ -43,6 +43,24 @@ pub mod pallet {
 		type Duration: Get<u32>;
 		/// Start Beat Offset in ms
 		type StartBeatOffsetMs: Get<u32>;
+
+		// Sections
+
+		/// Section Name
+		type SectionName: Get<u32>;
+		/// Section Start Time in ms
+		type SectionStartTimeMs: Get<u32>;
+		/// Section End Time in ms
+		type SectionEndTimeMs: Get<u32>;
+
+		// Stems
+
+		/// Stem File CID
+		type StemCid: Get<u32>;
+		/// Stem Name
+		type StemName: Get<u32>;
+		/// Section Name
+		type StemType: Get<u32>;
 	}
 
 	// Pallets use events to inform users when important changes are made.
@@ -51,13 +69,15 @@ pub mod pallet {
 	#[pallet::event] // <-- Step 3. code block will replace this.
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// Event emitted when a proof has been claimed. [who, claim]
-		ClaimCreated(
+		/// Event emitted when a Full Tract has been created. [who, id]
+		FullTrackCreated(
 			T::AccountId,
 			BoundedVec<u8, T::MusicId>,
 		),
-		/// Event emitted when a claim is revoked by the owner. [who, claim]
-		ClaimRevoked(T::AccountId, BoundedVec<u8, T::MaxBytesInHash>),
+		/// Event emitted when a claim is revoked by the owner. [who, id]
+		SectionCreated(T::AccountId, BoundedVec<u8, T::MusicId>),
+		/// Event emitted when a claim is revoked by the owner. [who, id]
+		StemCreated(T::AccountId, BoundedVec<u8, T::MusicId>),
 	}
 
 	#[pallet::error] // <-- Step 4. code block will replace this.
@@ -78,7 +98,7 @@ pub mod pallet {
 		BoundedVec<u8, T::MusicId>,
 		(
 			T::AccountId,
-			BoundedVec<u8, T::MaxBytesInHash>,
+			BoundedVec<u8, T::FullTrackCid>,
 			BoundedVec<u8, T::Artist>,
 			BoundedVec<u8, T::TrackTitle>,
 			BoundedVec<u8, T::Album>,
@@ -93,21 +113,46 @@ pub mod pallet {
 		),
 		OptionQuery,
 	>;
-	// 	// (
-	// 	// 	T::Album,
-	// 	// 	T::Artwork,
-	// 	// 	T::Duration,
-	// 	// 	T::Genre,
-	// 	// 	T::Key,
-	// 	// 	T::TimeSignature,
-	// ),
+	
+	#[pallet::storage]
+	/// Maps each Section Id to its owner, start time, end time and block number when the proof was made
+	pub(super) type Sections<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		BoundedVec<u8, T::MusicId>,
+		(
+			T::AccountId,
+			BoundedVec<u8, T::SectionName>,
+			BoundedVec<u8, T::SectionStartTimeMs>,
+			BoundedVec<u8, T::SectionEndTimeMs>,
+			T::BlockNumber,
+		),
+		OptionQuery,
+	>;
+
+	#[pallet::storage]
+	/// Maps each Section Id to its owner, start time, end time and block number when the proof was made
+	pub(super) type Stems<T: Config> = StorageMap<
+		_,
+		Blake2_128Concat,
+		BoundedVec<u8, T::MusicId>,
+		(
+			T::AccountId,
+			BoundedVec<u8, T::StemCid>,
+			BoundedVec<u8, T::StemName>,
+			BoundedVec<u8, T::StemType>,
+			T::BlockNumber,
+		),
+		OptionQuery,
+	>;
+
 	// pub(super) type Proofs<T: Config> = StorageDoubleMap<
 	// 	_,
 	// 	Blake2_128Concat,
 	// 	BoundedVec<u8, T::Artist>,
 	// 	Blake2_128Concat,
 	// 	(
-	// 		BoundedVec<u8, T::MaxBytesInHash>,
+	// 		BoundedVec<u8, T::FullTrackCid>,
 	// 		BoundedVec<u8, T::Artist>,
 	// 		BoundedVec<u8, T::Title>,
 	// 		BoundedVec<u8, T::Bpm>,
@@ -124,7 +169,7 @@ pub mod pallet {
 		pub fn create_fulltrack(
 			origin: OriginFor<T>,
 			music_id: BoundedVec<u8, T::MusicId>,
-			music_file: BoundedVec<u8, T::MaxBytesInHash>,
+			music_file: BoundedVec<u8, T::FullTrackCid>,
 			artist: BoundedVec<u8, T::Artist>,
 			track_title: BoundedVec<u8, T::TrackTitle>,
 			album: BoundedVec<u8, T::Album>,
@@ -155,37 +200,63 @@ pub mod pallet {
 
 
 			// Emit an event that the claim was created.
-			Self::deposit_event(Event::ClaimCreated(sender, music_id));
+			Self::deposit_event(Event::FullTrackCreated(sender, music_id));
 
 			Ok(())
 		}
 
-		// #[pallet::weight(10_000)]
-		// pub fn revoke_claim(
-		// 	origin: OriginFor<T>,
-		// 	proof: BoundedVec<u8, T::MaxBytesInHash>,
-		// ) -> DispatchResult {
-		// 	// Check that the extrinsic was signed and get the signer.
-		// 	// This function will return an error if the extrinsic is not signed.
-		// 	// https://docs.substrate.io/v3/runtime/origins
-		// 	let sender = ensure_signed(origin)?;
+		#[pallet::weight(10_000)]
+		pub fn create_section(
+			origin: OriginFor<T>,
+			music_id: BoundedVec<u8, T::MusicId>,
+			section_name: BoundedVec<u8, T::SectionName>,
+			start_time_ms: BoundedVec<u8, T::SectionStartTimeMs>,
+			end_time_ms: BoundedVec<u8, T::SectionEndTimeMs>,
+		) -> DispatchResult {
+			// Check that the extrinsic was signed and get the signer.
+			// This function will return an error if the extrinsic is not signed.
+			// https://docs.substrate.io/v3/runtime/origins
+			let sender = ensure_signed(origin)?;
 
-		// 	// Verify that the specified proof has been claimed.
-		// 	// ensure!(Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);
+			// Verify that the specified proof has been claimed.
+			// ensure!(Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);
+			
+			// Get the block number from the FRAME System pallet.
+			let current_block = <frame_system::Pallet<T>>::block_number();
 
-		// 	// Get owner of the claim.
-		// 	// Panic condition: there is no way to set a `None` owner, so this must always unwrap.
-		// 	let (owner, _) = Proofs::<T>::get(&proof).expect("All proofs must have an owner!");
+			// Remove claim from storage.
+			Sections::<T>::insert(&music_id, (&sender, section_name, start_time_ms, end_time_ms, current_block));
 
-		// 	// Verify that sender of the current call is the claim owner.
-		// 	ensure!(sender == owner, Error::<T>::NotProofOwner);
+			// Emit an event that the claim was created.
+			Self::deposit_event(Event::SectionCreated(sender, music_id));
+			Ok(())
+		}
 
-		// 	// Remove claim from storage.
-		// 	Proofs::<T>::remove(&proof);
+		#[pallet::weight(10_000)]
+		pub fn create_stem(
+			origin: OriginFor<T>,
+			music_id: BoundedVec<u8, T::MusicId>,
+			stem_cid: BoundedVec<u8, T::StemCid>,
+			stem_name: BoundedVec<u8, T::StemName>,
+			stem_type: BoundedVec<u8, T::StemType>,
+		) -> DispatchResult {
+			// Check that the extrinsic was signed and get the signer.
+			// This function will return an error if the extrinsic is not signed.
+			// https://docs.substrate.io/v3/runtime/origins
+			let sender = ensure_signed(origin)?;
 
-		// 	// Emit an event that the claim was erased.
-		// 	Self::deposit_event(Event::ClaimRevoked(sender, proof));
-		// 	Ok(())
-		// }
+			// Verify that the specified proof has been claimed.
+			// ensure!(Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);
+			
+			// Get the block number from the FRAME System pallet.
+			let current_block = <frame_system::Pallet<T>>::block_number();
+
+			// Remove claim from storage.
+			Stems::<T>::insert(&music_id, (&sender, stem_cid, stem_name, stem_type, current_block));
+
+			// Emit an event that the claim was created.
+			Self::deposit_event(Event::StemCreated(sender, music_id));
+			Ok(())
+		}
 	}
 }

@@ -267,7 +267,7 @@ impl pallet_sudo::Config for Runtime {
 /// Configure the pallet-template in pallets/template.
 impl pallet_template::Config for Runtime {
 	type Event = Event;
-	type MaxBytesInHash = frame_support::traits::ConstU32<64>;
+	type FullTrackCid = frame_support::traits::ConstU32<64>;
 	type Artist = frame_support::traits::ConstU32<64>;
 	type MusicId = frame_support::traits::ConstU32<64>;
 	type TrackTitle = frame_support::traits::ConstU32<64>;
@@ -279,6 +279,14 @@ impl pallet_template::Config for Runtime {
 	type Bars = frame_support::traits::ConstU32<64>;
 	type Duration = frame_support::traits::ConstU32<64>;
 	type StartBeatOffsetMs = frame_support::traits::ConstU32<64>;
+	
+	type SectionName = frame_support::traits::ConstU32<64>;
+	type SectionStartTimeMs = frame_support::traits::ConstU32<64>;
+	type SectionEndTimeMs = frame_support::traits::ConstU32<64>;
+
+	type StemCid = frame_support::traits::ConstU32<64>;
+	type StemName = frame_support::traits::ConstU32<64>;
+	type StemType = frame_support::traits::ConstU32<64>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
