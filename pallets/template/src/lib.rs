@@ -43,6 +43,10 @@ pub mod pallet {
 		type Duration: Get<u32>;
 		/// Start Beat Offset in ms
 		type StartBeatOffsetMs: Get<u32>;
+		/// No of Sections
+		type SectionsCount: Get<u32>;
+		/// No of Stems
+		type StemsCount: Get<u32>;
 
 		// Sections
 
@@ -70,10 +74,7 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Event emitted when a Full Tract has been created. [who, id]
-		FullTrackCreated(
-			T::AccountId,
-			BoundedVec<u8, T::MusicId>,
-		),
+		FullTrackCreated(T::AccountId, BoundedVec<u8, T::MusicId>),
 		/// Event emitted when a claim is revoked by the owner. [who, id]
 		SectionCreated(T::AccountId, BoundedVec<u8, T::MusicId>),
 		/// Event emitted when a claim is revoked by the owner. [who, id]
@@ -109,11 +110,12 @@ pub mod pallet {
 			BoundedVec<u8, T::Bars>,
 			BoundedVec<u8, T::Duration>,
 			BoundedVec<u8, T::StartBeatOffsetMs>,
+			BoundedVec<u8, T::SectionsCount>,
+			BoundedVec<u8, T::StemsCount>,
 			T::BlockNumber,
 		),
 		OptionQuery,
 	>;
-	
 	#[pallet::storage]
 	/// Maps each Section Id to its owner, start time, end time and block number when the proof was made
 	pub(super) type Sections<T: Config> = StorageMap<
@@ -180,6 +182,8 @@ pub mod pallet {
 			bars: BoundedVec<u8, T::Bars>,
 			duration: BoundedVec<u8, T::Duration>,
 			start_beat_offset_ms: BoundedVec<u8, T::StartBeatOffsetMs>,
+			no_of_sections: BoundedVec<u8, T::SectionsCount>,
+			no_of_stems: BoundedVec<u8, T::StemsCount>,
 		) -> DispatchResult {
 			// Check that the extrinsic was signed and get the signer.
 			// This function will return an error if the extrinsic is not signed.
@@ -195,9 +199,24 @@ pub mod pallet {
 			// Store the proof with the sender and block number.
 			FullTracks::<T>::insert(
 				&music_id,
-				(&sender, &music_file, &artist, &track_title, &album, &genre, &bpm, &key, &time_signature, &bars, &duration, &start_beat_offset_ms, current_block),
+				(
+					&sender,
+					music_file,
+					artist,
+					track_title,
+					album,
+					genre,
+					bpm,
+					key,
+					time_signature,
+					bars,
+					duration,
+					start_beat_offset_ms,
+					no_of_sections,
+					no_of_stems,
+					current_block,
+				),
 			);
-
 
 			// Emit an event that the claim was created.
 			Self::deposit_event(Event::FullTrackCreated(sender, music_id));
@@ -220,12 +239,14 @@ pub mod pallet {
 
 			// Verify that the specified proof has been claimed.
 			// ensure!(Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);
-			
 			// Get the block number from the FRAME System pallet.
 			let current_block = <frame_system::Pallet<T>>::block_number();
 
 			// Remove claim from storage.
-			Sections::<T>::insert(&music_id, (&sender, section_name, start_time_ms, end_time_ms, current_block));
+			Sections::<T>::insert(
+				&music_id,
+				(&sender, section_name, start_time_ms, end_time_ms, current_block),
+			);
 
 			// Emit an event that the claim was created.
 			Self::deposit_event(Event::SectionCreated(sender, music_id));
@@ -247,7 +268,6 @@ pub mod pallet {
 
 			// Verify that the specified proof has been claimed.
 			// ensure!(Proofs::<T>::contains_key(&proof), Error::<T>::NoSuchProof);
-			
 			// Get the block number from the FRAME System pallet.
 			let current_block = <frame_system::Pallet<T>>::block_number();
 

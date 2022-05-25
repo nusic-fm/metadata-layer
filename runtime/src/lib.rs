@@ -279,7 +279,9 @@ impl pallet_template::Config for Runtime {
 	type Bars = frame_support::traits::ConstU32<64>;
 	type Duration = frame_support::traits::ConstU32<64>;
 	type StartBeatOffsetMs = frame_support::traits::ConstU32<64>;
-	
+	type SectionsCount = frame_support::traits::ConstU32<64>;
+	type StemsCount = frame_support::traits::ConstU32<64>;
+
 	type SectionName = frame_support::traits::ConstU32<64>;
 	type SectionStartTimeMs = frame_support::traits::ConstU32<64>;
 	type SectionEndTimeMs = frame_support::traits::ConstU32<64>;
