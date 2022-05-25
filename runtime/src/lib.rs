@@ -267,16 +267,17 @@ impl pallet_sudo::Config for Runtime {
 /// Configure the pallet-template in pallets/template.
 impl pallet_template::Config for Runtime {
 	type Event = Event;
-	type FullTrackCid = frame_support::traits::ConstU32<64>;
-	type Artist = frame_support::traits::ConstU32<64>;
+	type FullTrackCid = frame_support::traits::ConstU32<128>;
+	type Artist = frame_support::traits::ConstU32<128>;
 	type MusicId = frame_support::traits::ConstU32<64>;
-	type TrackTitle = frame_support::traits::ConstU32<64>;
-	type Album = frame_support::traits::ConstU32<64>;
+	type TrackTitle = frame_support::traits::ConstU32<128>;
+	type Album = frame_support::traits::ConstU32<128>;
 	type Genre = frame_support::traits::ConstU32<64>;
 	type Bpm = frame_support::traits::ConstU32<64>;
 	type Key = frame_support::traits::ConstU32<64>;
 	type TimeSignature = frame_support::traits::ConstU32<64>;
 	type Bars = frame_support::traits::ConstU32<64>;
+	type Beats = frame_support::traits::ConstU32<64>;
 	type Duration = frame_support::traits::ConstU32<64>;
 	type StartBeatOffsetMs = frame_support::traits::ConstU32<64>;
 	type SectionsCount = frame_support::traits::ConstU32<64>;
@@ -286,7 +287,7 @@ impl pallet_template::Config for Runtime {
 	type SectionStartTimeMs = frame_support::traits::ConstU32<64>;
 	type SectionEndTimeMs = frame_support::traits::ConstU32<64>;
 
-	type StemCid = frame_support::traits::ConstU32<64>;
+	type StemCid = frame_support::traits::ConstU32<128>;
 	type StemName = frame_support::traits::ConstU32<64>;
 	type StemType = frame_support::traits::ConstU32<64>;
 }

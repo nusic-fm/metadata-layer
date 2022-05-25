@@ -39,6 +39,8 @@ pub mod pallet {
 		type TimeSignature: Get<u32>;
 		/// Number of Bars
 		type Bars: Get<u32>;
+		/// Number of Beats
+		type Beats: Get<u32>;
 		/// Duration
 		type Duration: Get<u32>;
 		/// Start Beat Offset in ms
@@ -108,6 +110,7 @@ pub mod pallet {
 			BoundedVec<u8, T::Key>,
 			BoundedVec<u8, T::TimeSignature>,
 			BoundedVec<u8, T::Bars>,
+			BoundedVec<u8, T::Beats>,
 			BoundedVec<u8, T::Duration>,
 			BoundedVec<u8, T::StartBeatOffsetMs>,
 			BoundedVec<u8, T::SectionsCount>,
@@ -127,6 +130,8 @@ pub mod pallet {
 			BoundedVec<u8, T::SectionName>,
 			BoundedVec<u8, T::SectionStartTimeMs>,
 			BoundedVec<u8, T::SectionEndTimeMs>,
+			BoundedVec<u8, T::Bars>,
+			BoundedVec<u8, T::Beats>,
 			T::BlockNumber,
 		),
 		OptionQuery,
@@ -180,6 +185,7 @@ pub mod pallet {
 			key: BoundedVec<u8, T::Key>,
 			time_signature: BoundedVec<u8, T::TimeSignature>,
 			bars: BoundedVec<u8, T::Bars>,
+			beats: BoundedVec<u8, T::Beats>,
 			duration: BoundedVec<u8, T::Duration>,
 			start_beat_offset_ms: BoundedVec<u8, T::StartBeatOffsetMs>,
 			no_of_sections: BoundedVec<u8, T::SectionsCount>,
@@ -210,6 +216,7 @@ pub mod pallet {
 					key,
 					time_signature,
 					bars,
+					beats,
 					duration,
 					start_beat_offset_ms,
 					no_of_sections,
@@ -231,6 +238,8 @@ pub mod pallet {
 			section_name: BoundedVec<u8, T::SectionName>,
 			start_time_ms: BoundedVec<u8, T::SectionStartTimeMs>,
 			end_time_ms: BoundedVec<u8, T::SectionEndTimeMs>,
+			bars: BoundedVec<u8, T::Bars>,
+			beats: BoundedVec<u8, T::Beats>,
 		) -> DispatchResult {
 			// Check that the extrinsic was signed and get the signer.
 			// This function will return an error if the extrinsic is not signed.
@@ -245,7 +254,7 @@ pub mod pallet {
 			// Remove claim from storage.
 			Sections::<T>::insert(
 				&music_id,
-				(&sender, section_name, start_time_ms, end_time_ms, current_block),
+				(&sender, section_name, start_time_ms, end_time_ms, bars, beats, current_block),
 			);
 
 			// Emit an event that the claim was created.
