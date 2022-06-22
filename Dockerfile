@@ -27,7 +27,10 @@ RUN rustup target add wasm32-unknown-unknown
 
 COPY . .
 
-RUN cargo build --release 
+RUN cargo build --release
+
+LABEL org.opencontainers.image.source="https://github.com/nusic-fm/metadata-layer"
+
 # && ./target/release/node-template --dev --ws-external
 
 # ENTRYPOINT ["tail", "-f", "/dev/null"]

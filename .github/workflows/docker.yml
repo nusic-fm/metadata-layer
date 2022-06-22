@@ -2,17 +2,32 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ["master"]
   pull_request:
-    branches: [ "master" ]
+    branches: ["master"]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    - name: Build the Docker image
-      run: docker build . --tag paritytech/ci-linux:974ba3ac-20201006
+      - uses: actions/checkout@v3
+      # - name: Login and Build the Docker image
+      #   run: |
+      #     echo $CR_PAT | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      #     env:
+      #       CR_PAT: ${{ secrets.PAT }}
+      #     docker image build -t nusic/layer1:v1 .
+      #     docker push nusic/layer1:v1
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build the Docker image
+            run: |
+              docker build -t nusic/layer1:v1 .
+              docker run ghcr.io/nusic/layer1:v1
+              docker push ghcr.io/nusic/layer1:v1
