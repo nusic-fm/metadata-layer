@@ -27,6 +27,7 @@ RUN rustup target add wasm32-unknown-unknown
 
 COPY . .
 
-RUN cargo build --release && ./target/release/node-template --dev --ws-external
+RUN cargo build --release 
+# && ./target/release/node-template --dev --ws-external
 
 # ENTRYPOINT ["tail", "-f", "/dev/null"]
