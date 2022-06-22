@@ -27,7 +27,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build the Docker image
-            run: |
-              docker build -t nusic/layer1:v1 .
-              docker run ghcr.io/nusic/layer1:v1
-              docker push ghcr.io/nusic/layer1:v1
+        run: |
+          docker build -t nusic/layer1:v1 .
+          docker run ghcr.io/nusic/layer1:v1
+          docker push ghcr.io/nusic/layer1:v1
