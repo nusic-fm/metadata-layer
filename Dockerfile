@@ -31,6 +31,8 @@ RUN cargo build --release
 
 LABEL org.opencontainers.image.source="https://github.com/nusic-fm/metadata-layer"
 
+ENTRYPOINT ["/usr/local/bin/substrate"]
+
 # && ./target/release/node-template --dev --ws-external
 
 # ENTRYPOINT ["tail", "-f", "/dev/null"]
