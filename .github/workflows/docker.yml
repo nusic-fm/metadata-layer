@@ -29,5 +29,6 @@ jobs:
       - name: Build the Docker image
         run: |
           docker build -t ghcr.io/nusic-fm/layer1:v1.1 .
-          docker run ghcr.io/nusic-fm/layer1:v1.1
           docker push ghcr.io/nusic-fm/layer1:v1.1
+
+        # docker run ghcr.io/nusic-fm/layer1:v1.1
