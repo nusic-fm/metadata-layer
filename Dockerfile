@@ -24,12 +24,17 @@ RUN apt-get update -y && \
   apt-get install -y cmake pkg-config libssl-dev git gcc build-essential clang libclang-dev
 
 RUN rustup target add wasm32-unknown-unknown
+#  /app/target/release/node-template --dev --ws-external
 
 COPY . .
 
 RUN cargo build --release
 
 LABEL org.opencontainers.image.source="https://github.com/nusic-fm/metadata-layer"
+
+# CMD ["sh", "-c", "/app/target/release/node-template --${} --${}"]
+
+EXPOSE 9944
 
 # ENTRYPOINT ["/"]
 
