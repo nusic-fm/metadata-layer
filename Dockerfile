@@ -32,7 +32,12 @@ RUN cargo build --release
 
 LABEL org.opencontainers.image.source="https://github.com/nusic-fm/metadata-layer"
 
-# CMD ["sh", "-c", "/app/target/release/node-template --${} --${}"]
+ENV environment dev
+ENV place ws-external
+
+# CMD ["/app/target/release/node-template"]
+
+CMD ["sh", "-c", "/app/target/release/node-template --${environment} --${place}"]
 
 EXPOSE 9944
 
