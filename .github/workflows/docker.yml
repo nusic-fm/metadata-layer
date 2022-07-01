@@ -1,0 +1,34 @@
+name: Docker Image CI
+
+on:
+  push:
+    branches: ["master"]
+  pull_request:
+    branches: ["master"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      # - name: Login and Build the Docker image
+      #   run: |
+      #     echo $CR_PAT | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+      #     env:
+      #       CR_PAT: ${{ secrets.PAT }}
+      #     docker image build -t nusic/layer1:v1 .
+      #     docker push nusic/layer1:v1
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: nusic-fm
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build the Docker image
+        run: |
+          docker build -t ghcr.io/nusic-fm/layer1:v1.2 .
+          docker push ghcr.io/nusic-fm/layer1:v1.2
+
+        # docker run ghcr.io/nusic-fm/layer1:v1.1
